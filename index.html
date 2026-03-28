@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Cestas de Páscoa</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    :root{
+      --azul:#0d4ea6;
+      --cinza:#f5f5f5;
+      --texto:#222;
+      --muted:#666;
+      --grad1:#2b4cff;
+      --grad2:#d93cff;
+      --verde:#15803d;
+      --vermelho:#b91c1c;
+      --borda:#dfe3ea;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      font-family:Arial,sans-serif;
+      background:#fff;
+      color:var(--texto);
+      min-height:100vh;
+    }
+
+    .tela{display:none;min-height:100vh}
+    .ativa{display:flex;flex-direction:column;align-items:center}
+
+    .logo{margin-top:20px;padding:0 16px}
+    .logo img{width:min(220px,70vw);height:auto;display:block}
+
+    .menu{
+      margin-top:48px;
+      width:100%;
+      max-width:380px;
+      display:flex;
+      flex-direction:column;
+      gap:28px;
+      align-items:center;
+      padding:0 18px
+    }
+
+    .botao{
+      width:82%;
+      padding:18px 0;
+      border-radius:50px;
+      text-align:center;
+      font-size:clamp(20px,5vw,24px);
+      font-weight:bold;
+      color:#fff;
+      background:linear-gradient(90deg,var(--grad1),var(--grad2));
+      box-shadow:8px 8px 0 #3f6de0,16px 16px 0 #b3c2e0;
+      cursor:pointer;
+      user-select:none
+    }
+
+    .topo-acoes,.busca-container,.cesta-box,.salvas-box,.status-box,.guia-box{
+      width:min(94%,480px)
+    }
+
+    .topo-acoes{
+      margin-top:8px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px
+    }
+
+    .btn-voltar,.btn-mini{
+      background:transparent;
+      border:none;
+      color:var(--azul);
+      font-weight:bold;
+      font-size:15px;
+      cursor:pointer;
+      padding:8px 2px
+    }
+
+    .busca-container,.cesta-box,.salvas-box,.status-box,.guia-box{margin-top:10px}
+
+    .titulo-box{
+      margin:0 0 10px 2px;
+      font-size:16px;
+      font-weight:bold;
+      text-transform:lowercase
+    }
+
+    .caixa{
+      background:#fff;
+      border:1px solid var(--borda);
+      border-radius:16px;
+      padding:14px
+    }
+
+    .busca-box{
+      display:flex;
+      align-items:center;
+      gap:6px
+    }
+
+    .busca-box input,.input-padrao{
+      width:100%;
+      padding:12px 14px;
+      border-radius:24px;
+      border:2px solid #111;
+      font-size:16px;
+      outline:none
+    }
+
+    .busca-box button,.btn-acao{
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+      min-width:46px;
+      height:46px;
+      font-size:18px;
+      background:#efefef
+    }
+
+    .btn-acao{
+      min-width:auto;
+      height:auto;
+      padding:10px 14px;
+      font-size:14px;
+      font-weight:bold;
+      background:var(--azul);
+      color:#fff
+    }
+
+    .btn-sucesso{background:var(--verde)}
+    .btn-perigo{background:var(--vermelho)}
+    .btn-claro{background:#efefef;color:#222}
+
+    #reader{
+      width:min(94%,480px);
+      margin-top:14px;
+      border-radius:16px;
+      overflow:hidden
+    }
+
+    .scanner-placeholder{
+      width:100%;
+      min-height:120px;
+      border:2px dashed #b8c5dd;
+      background:#f8fbff;
+      color:#46608b;
+      border-radius:16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:18px;
+      font-size:14px
+    }
+
+    .tabela{
+      width:min(94%,480px);
+      margin-top:14px;
+      margin-bottom:18px
+    }
+
+    .produto,.item-cesta,.cesta-salva,.status-card{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      background:var(--cinza);
+      border:1px solid #dfdfdf;
+      padding:12px;
+      border-radius:14px;
+      margin-bottom:10px
+    }
+
+    .info{flex:1;min-width:0}
+
+    .nome{
+      font-weight:bold;
+      font-size:14px;
+      line-height:1.25;
+      word-break:break-word
+    }
+
+    .ean,.subtexto{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:4px;
+      word-break:break-all
+    }
+
+    .lado-direito{
+      min-width:118px;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:8px
+    }
+
+    .preco{
+      font-weight:bold;
+      color:var(--azul);
+      font-size:15px;
+      white-space:nowrap
+    }
+
+    .btn-select{
+      background:var(--azul);
+      color:#fff;
+      border:none;
+      padding:8px 12px;
+      border-radius:10px;
+      font-size:12px;
+      font-weight:bold;
+      cursor:pointer
+    }
+
+    .mensagem,.sem-resultado{
+      padding:18px 12px;
+      color:var(--muted);
+      background:#fafafa;
+      border:1px solid #ececec;
+      border-radius:12px
+    }
+
+    .cesta-topo{
+      background:#eef4ff;
+      border:1px solid #d8e6ff;
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:10px
+    }
+
+    .cesta-topo h3{
+      margin:0 0 10px 0;
+      color:var(--azul);
+      font-size:18px
+    }
+
+    .grid-resumo{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:10px
+    }
+
+    .resumo-card{
+      background:#fff;
+      border:1px solid #dbe3ef;
+      border-radius:12px;
+      padding:10px
+    }
+
+    .resumo-card .rotulo{
+      font-size:12px;
+      color:var(--muted)
+    }
+
+    .resumo-card .valor{
+      font-weight:bold;
+      font-size:18px;
+      margin-top:4px
+    }
+
+    .acoes{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap
+    }
+
+    .qtd-box{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      background:#fff;
+      border:1px solid #d8d8d8;
+      border-radius:10px;
+      padding:4px 8px
+    }
+
+    .qtd-btn{
+      border:none;
+      background:#efefef;
+      width:26px;
+      height:26px;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:bold
+    }
+
+    .grid-duplo{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px
+    }
+
+    .status-on{color:var(--verde);font-weight:bold}
+    .status-off{color:var(--vermelho);font-weight:bold}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:6px}
+
+    .footer{
+      margin-top:auto;
+      width:100%;
+      height:78px;
+      background:var(--azul)
+    }
+
+    @media (max-width:420px){
+      .botao{
+        width:86%;
+        box-shadow:6px 6px 0 #3f6de0,12px 12px 0 #b3c2e0
+      }
+
+      .busca-box button{
+        min-width:44px;
+        height:44px
+      }
+
+      .produto,.item-cesta,.cesta-salva,.status-card{align-items:flex-start}
+      .grid-resumo,.grid-duplo{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<div id="telaMenu" class="tela ativa">
+  <div class="logo"><img src="logo mercado.jpg" alt="Mercado São José" /></div>
+  <div class="menu">
+    <div class="botao" onclick="abrirBusca()">nova cesta</div>
+    <div class="botao" onclick="abrirCestasSalvas()">editar cesta</div>
+    <div class="botao" onclick="abrirGuia()">firebase</div>
+  </div>
+  <div class="footer"></div>
+</div>
+
+<div id="telaBusca" class="tela">
+  <div class="logo"><img src="logo mercado.jpg" alt="Mercado São José" /></div>
+
+  <div class="topo-acoes">
+    <button class="btn-voltar" onclick="voltarMenu()">← voltar</button>
+    <button class="btn-mini" onclick="abrirCestasSalvas()">cestas salvas</button>
+  </div>
+
+  <div class="status-box">
+    <div class="status-card">
+      <div class="info">
+        <div class="nome">Sincronização em nuvem</div>
+        <div class="subtexto" id="statusSyncTexto">Conectando ao Firebase...</div>
+      </div>
+      <div class="lado-direito">
+        <div id="statusSyncBadge" class="status-off">offline</div>
+        <button class="btn-select" onclick="abrirGuia()">guia</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cesta-box">
+    <div class="cesta-topo">
+      <h3>Cesta parcial</h3>
+      <div class="grid-duplo">
+        <input class="input-padrao" id="nomeCesta" placeholder="Nome da cesta (ex: Cesta 01)" />
+        <input class="input-padrao" id="codigoCesta" placeholder="Código da cesta (ex: cesta_01)" />
+      </div>
+      <div class="grid-resumo">
+        <div class="resumo-card">
+          <div class="rotulo">Itens</div>
+          <div class="valor" id="resumoItens">0</div>
+        </div>
+        <div class="resumo-card">
+          <div class="rotulo">Total</div>
+          <div class="valor" id="resumoTotal">R$ 0.00</div>
+        </div>
+      </div>
+      <div class="acoes" style="margin-top:10px;">
+        <button class="btn-acao btn-sucesso" onclick="salvarCesta()">Salvar cesta</button>
+        <button class="btn-acao btn-claro" onclick="baixarCestaAtual()">Baixar JSON</button>
+        <button class="btn-acao btn-perigo" onclick="limparCestaAtual()">Limpar</button>
+      </div>
+    </div>
+
+    <div id="itensCesta"><div class="mensagem">Nenhum item adicionado à cesta.</div></div>
+  </div>
+
+  <div class="busca-container">
+    <div class="titulo-box">pesquisar produtos</div>
+    <div class="busca-box">
+      <input type="text" id="busca" placeholder="nome, EAN ou ID" autocomplete="off" />
+      <button onclick="buscar()" aria-label="Buscar">🔍</button>
+      <button onclick="alternarScanner()" aria-label="Ler código de barras">📷</button>
+    </div>
+  </div>
+
+  <div id="reader"><div class="scanner-placeholder">Toque na câmera para iniciar o leitor no celular.</div></div>
+  <div class="tabela" id="lista"><div class="mensagem">Digite um nome ou EAN para pesquisar.</div></div>
+  <div class="footer"></div>
+</div>
+
+<div id="telaSalvas" class="tela">
+  <div class="logo"><img src="logo mercado.jpg" alt="Mercado São José" /></div>
+  <div class="topo-acoes">
+    <button class="btn-voltar" onclick="voltarMenu()">← voltar</button>
+    <button class="btn-mini" onclick="abrirGuia()">firebase</button>
+  </div>
+  <div class="salvas-box">
+    <div class="acoes" style="margin-bottom:12px;">
+      <button class="btn-acao" onclick="baixarTodasCestas()">Baixar todas</button>
+      <button class="btn-acao btn-perigo" onclick="apagarTodasCestas()">Apagar todas</button>
+    </div>
+    <div id="listaCestasSalvas"><div class="mensagem">Nenhuma cesta salva ainda.</div></div>
+  </div>
+  <div class="footer"></div>
+</div>
+
+<div id="telaGuia" class="tela">
+  <div class="logo"><img src="logo mercado.jpg" alt="Mercado São José" /></div>
+  <div class="topo-acoes"><button class="btn-voltar" onclick="voltarMenu()">← voltar</button></div>
+  <div class="guia-box">
+    <div class="caixa">
+      <div class="titulo-box">firebase já embutido</div>
+      <div class="mensagem" style="text-align:left">
+        Esta versão já vem com seu <strong>firebaseConfig</strong> preenchido e a conexão ativada.<br><br>
+        Para funcionar entre vários dispositivos, confirme no Firebase:
+        <br>1. O <strong>Realtime Database</strong> foi criado
+        <br>2. As regras permitem leitura e gravação
+        <br>3. O arquivo foi publicado no GitHub Pages ou aberto em um servidor local
+      </div>
+    </div>
+  </div>
+  <div class="guia-box">
+    <div class="caixa">
+      <div class="titulo-box">regras de teste</div>
+      <div class="mensagem" style="text-align:left">
+        Use estas regras no Realtime Database:
+        <br><br>
+        <code>{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}</code>
+      </div>
+    </div>
+  </div>
+  <div class="footer"></div>
+</div>
+
+<script type="module">
+  import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+  import { getDatabase, ref, set, remove, onValue, off } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+  const FIREBASE_ENABLED = true;
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyATVsDXLmpRPm0t0PxwjFLE3YxlRyIHQag",
+    authDomain: "cesta-pascoa.firebaseapp.com",
+    databaseURL: "https://cesta-pascoa-default-rtdb.firebaseio.com",
+    projectId: "cesta-pascoa",
+    storageBucket: "cesta-pascoa.firebasestorage.app",
+    messagingSenderId: "980671264731",
+    appId: "1:980671264731:web:c83e0dd5e0ea01c7b659fe"
+  };
+
+  let produtos = [];
+  let precos = {};
+  let scanner = null;
+  let scannerAtivo = false;
+  let firebaseApp = null;
+  let firebaseDb = null;
+  let firebaseListenerRef = null;
+  let firebaseListenerFn = null;
+
+  let cestaAtual = criarCestaVazia();
+
+  function criarCestaVazia(){
+    return {
+      idInterno: "cesta-" + Date.now(),
+      codigo: "",
+      nome: "",
+      criadoEm: new Date().toISOString(),
+      itens: []
+    };
+  }
+
+  function normalizarEAN(valor){
+    return String(valor || "").replace(/"/g, "").replace(/\D/g, "").replace(/^0+/, "").trim();
+  }
+
+  function formatarMoeda(valor){
+    return "R$ " + Number(valor || 0).toFixed(2);
+  }
+
+  function obterTotalItens(cesta){
+    return cesta.itens.reduce((acc, item) => acc + item.quantidade, 0);
+  }
+
+  function obterTotalCesta(cesta){
+    return cesta.itens.reduce((acc, item) => acc + (item.precoVenda * item.quantidade), 0);
+  }
+
+  function abrirTela(idTela){
+    ["telaMenu","telaBusca","telaSalvas","telaGuia"].forEach(id => {
+      document.getElementById(id).classList.remove("ativa");
+    });
+    document.getElementById(idTela).classList.add("ativa");
+  }
+
+  window.abrirBusca = function(){
+    abrirTela("telaBusca");
+    setTimeout(() => document.getElementById("busca").focus(), 50);
+  };
+
+  window.abrirCestasSalvas = function(){
+    pararScanner();
+    abrirTela("telaSalvas");
+    renderizarCestasSalvas();
+  };
+
+  window.abrirGuia = function(){
+    pararScanner();
+    abrirTela("telaGuia");
+  };
+
+  window.voltarMenu = function(){
+    pararScanner();
+    abrirTela("telaMenu");
+  };
+
+  async function carregarArquivos(){
+    try{
+      const [csvResp, txtResp] = await Promise.all([
+        fetch("produtos (2).csv"),
+        fetch("produtos.txt")
+      ]);
+
+      carregarCSV(await csvResp.text());
+      carregarTXT(await txtResp.text());
+    }catch(erro){
+      console.error("Erro ao carregar arquivos:", erro);
+      document.getElementById("lista").innerHTML = `<div class="mensagem">Erro ao carregar produtos.csv ou produtos.TXT.</div>`;
+    }
+  }
+
+  function carregarCSV(texto){
+    produtos = [];
+    texto.split(/\r?\n/).slice(1).forEach(linha => {
+      if(!linha.trim()) return;
+      const partes = linha.split(";");
+      const idProduto = String(partes[0] || "").replace(/"/g, "").trim();
+      const ean = normalizarEAN(partes[1]);
+      const nome = String(partes[2] || "").replace(/"/g, "").trim();
+
+      if(idProduto && ean && nome){
+        produtos.push({ idProduto, ean, nome });
+      }
+    });
+  }
+
+  function carregarTXT(texto){
+    precos = {};
+    texto.split(/\r?\n/).forEach(linha => {
+      linha = linha.trim();
+      if(!linha) return;
+      const match = linha.match(/^(\d{7,})(.*?)(\d+[.,]\d{2})$/);
+      if(!match) return;
+
+      const ean = normalizarEAN(match[1]);
+      const precoVenda = parseFloat(match[3].replace(",", "."));
+
+      if(ean && !Number.isNaN(precoVenda)){
+        precos[ean] = precoVenda;
+      }
+    });
+  }
+
+  window.buscar = function(){
+    const valor = document.getElementById("busca").value.toLowerCase().trim();
+    const lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    if(valor === ""){
+      lista.innerHTML = `<div class="mensagem">Digite um nome ou EAN para pesquisar.</div>`;
+      return;
+    }
+
+    const filtrados = produtos.filter(p =>
+      p.nome.toLowerCase().includes(valor) ||
+      p.ean.includes(valor) ||
+      p.idProduto.includes(valor)
+    );
+
+    if(filtrados.length === 0){
+      lista.innerHTML = `<div class="sem-resultado">Nenhum produto encontrado.</div>`;
+      return;
+    }
+
+    filtrados.slice(0, 50).forEach(p => {
+      const precoVenda = precos[p.ean];
+      lista.innerHTML += `
+        <div class="produto">
+          <div class="info">
+            <div class="nome">${escapeHtml(p.nome)}</div>
+            <div class="subtexto">ID: ${escapeHtml(p.idProduto)}</div>
+            <div class="ean">${p.ean}</div>
+          </div>
+          <div class="lado-direito">
+            <div class="preco">${precoVenda !== undefined ? formatarMoeda(precoVenda) : "Sem preço"}</div>
+            <button class="btn-select" onclick="selecionarProduto('${p.ean}')">Selecionar</button>
+          </div>
+        </div>
+      `;
+    });
+  };
+
+  window.selecionarProduto = function(ean){
+    const produto = produtos.find(p => p.ean === ean);
+    if(!produto) return;
+
+    const precoVenda = precos[ean];
+    if(precoVenda === undefined){
+      alert("Esse produto não possui preço no TXT.");
+      return;
+    }
+
+    const itemExistente = cestaAtual.itens.find(item => item.ean === ean);
+
+    if(itemExistente){
+      itemExistente.quantidade += 1;
+    }else{
+      cestaAtual.itens.push({
+        idProduto: produto.idProduto,
+        ean: produto.ean,
+        nome: produto.nome,
+        precoVenda,
+        quantidade: 1
+      });
+    }
+
+    renderizarCestaAtual();
+  };
+
+  function renderizarCestaAtual(){
+    cestaAtual.nome = document.getElementById("nomeCesta").value.trim();
+    cestaAtual.codigo = document.getElementById("codigoCesta").value.trim();
+
+    document.getElementById("resumoItens").textContent = obterTotalItens(cestaAtual);
+    document.getElementById("resumoTotal").textContent = formatarMoeda(obterTotalCesta(cestaAtual));
+
+    const area = document.getElementById("itensCesta");
+
+    if(cestaAtual.itens.length === 0){
+      area.innerHTML = `<div class="mensagem">Nenhum item adicionado à cesta.</div>`;
+      return;
+    }
+
+    area.innerHTML = "";
+    cestaAtual.itens.forEach(item => {
+      const subtotal = item.precoVenda * item.quantidade;
+      area.innerHTML += `
+        <div class="item-cesta">
+          <div class="info">
+            <div class="nome">${escapeHtml(item.nome)}</div>
+            <div class="subtexto">ID: ${escapeHtml(item.idProduto)}</div>
+            <div class="subtexto">EAN: ${item.ean}</div>
+            <div class="subtexto">Preço de venda: ${formatarMoeda(item.precoVenda)}</div>
+          </div>
+          <div class="lado-direito">
+            <div class="preco">${formatarMoeda(subtotal)}</div>
+            <div class="acoes">
+              <div class="qtd-box">
+                <button class="qtd-btn" onclick="alterarQuantidade('${item.ean}', -1)">-</button>
+                <strong>${item.quantidade}</strong>
+                <button class="qtd-btn" onclick="alterarQuantidade('${item.ean}', 1)">+</button>
+              </div>
+              <button class="btn-select" style="background:var(--vermelho)" onclick="removerItem('${item.ean}')">X</button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  window.alterarQuantidade = function(ean, delta){
+    const item = cestaAtual.itens.find(i => i.ean === ean);
+    if(!item) return;
+    item.quantidade += delta;
+    if(item.quantidade <= 0){
+      cestaAtual.itens = cestaAtual.itens.filter(i => i.ean !== ean);
+    }
+    renderizarCestaAtual();
+  };
+
+  window.removerItem = function(ean){
+    cestaAtual.itens = cestaAtual.itens.filter(i => i.ean !== ean);
+    renderizarCestaAtual();
+  };
+
+  window.limparCestaAtual = function(){
+    if(!confirm("Deseja limpar a cesta atual?")) return;
+    cestaAtual = criarCestaVazia();
+    document.getElementById("nomeCesta").value = "";
+    document.getElementById("codigoCesta").value = "";
+    renderizarCestaAtual();
+  };
+
+  function payloadCesta(cesta){
+    return {
+      codigo: (cesta.codigo || "").trim(),
+      nome: (cesta.nome || "").trim() || "Cesta sem nome",
+      criadoEm: cesta.criadoEm,
+      salvoEm: new Date().toISOString(),
+      totalItens: obterTotalItens(cesta),
+      totalValor: Number(obterTotalCesta(cesta).toFixed(2)),
+      itens: cesta.itens.map(item => ({
+        idProduto: item.idProduto,
+        ean: item.ean,
+        nome: item.nome,
+        precoVenda: item.precoVenda,
+        quantidade: item.quantidade,
+        subtotal: Number((item.precoVenda * item.quantidade).toFixed(2))
+      }))
+    };
+  }
+
+  function nomeArquivoSeguro(nome){
+    return String(nome || "cesta")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9-_]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .toLowerCase() || "cesta";
+  }
+
+  function baixarArquivo(nome, conteudo, tipo){
+    const blob = new Blob([conteudo], { type: tipo });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = nome;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  window.baixarCestaAtual = function(){
+    cestaAtual.nome = document.getElementById("nomeCesta").value.trim();
+    cestaAtual.codigo = document.getElementById("codigoCesta").value.trim();
+
+    if(cestaAtual.itens.length === 0){
+      alert("A cesta atual está vazia.");
+      return;
+    }
+
+    const exportacao = payloadCesta(cestaAtual);
+    const nomeBase = exportacao.codigo || exportacao.nome || "cesta";
+    baixarArquivo(
+      nomeArquivoSeguro(nomeBase) + ".json",
+      JSON.stringify(exportacao, null, 2),
+      "application/json"
+    );
+  };
+
+  function lerLocalCestas(){
+    try{
+      return JSON.parse(localStorage.getItem("cestas_pascoa_salvas") || "{}");
+    }catch{
+      return {};
+    }
+  }
+
+  function salvarLocalCestas(obj){
+    localStorage.setItem("cestas_pascoa_salvas", JSON.stringify(obj));
+  }
+
+  async function salvarRemotoCesta(codigo, dados){
+    if(!firebaseDb) return false;
+    await set(ref(firebaseDb, "cestas/" + codigo), dados);
+    return true;
+  }
+
+  async function apagarRemotoCesta(codigo){
+    if(!firebaseDb) return false;
+    await remove(ref(firebaseDb, "cestas/" + codigo));
+    return true;
+  }
+
+  window.salvarCesta = async function(){
+    cestaAtual.nome = document.getElementById("nomeCesta").value.trim();
+    cestaAtual.codigo = document.getElementById("codigoCesta").value.trim();
+
+    if(cestaAtual.itens.length === 0){
+      alert("Adicione pelo menos um item antes de salvar.");
+      return;
+    }
+
+    if(!cestaAtual.codigo){
+      alert("Informe o código da cesta. Exemplo: cesta_01");
+      return;
+    }
+
+    const dados = payloadCesta(cestaAtual);
+
+    const locais = lerLocalCestas();
+    locais[cestaAtual.codigo] = dados;
+    salvarLocalCestas(locais);
+
+    try{
+      if(firebaseDb){
+        await salvarRemotoCesta(cestaAtual.codigo, dados);
+        alert("Cesta salva localmente e na nuvem.");
+      }else{
+        alert("Cesta salva localmente. Verifique o Realtime Database e as regras do Firebase.");
+      }
+    }catch(erro){
+      console.error(erro);
+      alert("Cesta salva localmente, mas houve erro na nuvem.");
+    }
+
+    cestaAtual = criarCestaVazia();
+    document.getElementById("nomeCesta").value = "";
+    document.getElementById("codigoCesta").value = "";
+    renderizarCestaAtual();
+    renderizarCestasSalvas();
+  };
+
+  function listaCestasLocais(){
+    const obj = lerLocalCestas();
+    return Object.entries(obj).map(([codigo, cesta]) => ({ ...cesta, codigo }));
+  }
+
+  window.renderizarCestasSalvas = function(){
+    const area = document.getElementById("listaCestasSalvas");
+    const lista = listaCestasLocais();
+
+    if(lista.length === 0){
+      area.innerHTML = `<div class="mensagem">Nenhuma cesta salva ainda.</div>`;
+      return;
+    }
+
+    area.innerHTML = "";
+    lista
+      .sort((a,b) => new Date(b.salvoEm || b.criadoEm) - new Date(a.salvoEm || a.criadoEm))
+      .forEach(cesta => {
+        area.innerHTML += `
+          <div class="cesta-salva">
+            <div class="info">
+              <div class="nome">${escapeHtml(cesta.codigo || "sem_codigo")} - ${escapeHtml(cesta.nome || "Sem nome")}</div>
+              <div class="subtexto">Itens: ${cesta.totalItens || 0} | Total: ${formatarMoeda(cesta.totalValor || 0)}</div>
+              <div class="subtexto">${new Date(cesta.salvoEm || cesta.criadoEm).toLocaleString("pt-BR")}</div>
+            </div>
+            <div class="lado-direito">
+              <button class="btn-select" onclick="abrirCestaSalva('${cesta.codigo}')">Abrir</button>
+              <button class="btn-select" style="background:var(--verde)" onclick="baixarCestaSalva('${cesta.codigo}')">Baixar</button>
+              <button class="btn-select" style="background:var(--vermelho)" onclick="apagarCesta('${cesta.codigo}')">Apagar</button>
+            </div>
+          </div>
+        `;
+      });
+  };
+
+  window.abrirCestaSalva = function(codigo){
+    const cesta = lerLocalCestas()[codigo];
+    if(!cesta) return;
+
+    cestaAtual = {
+      idInterno: "cesta-" + Date.now(),
+      codigo,
+      nome: cesta.nome || "",
+      criadoEm: cesta.criadoEm || new Date().toISOString(),
+      itens: Array.isArray(cesta.itens) ? cesta.itens.map(item => ({
+        idProduto: item.idProduto,
+        ean: item.ean,
+        nome: item.nome,
+        precoVenda: item.precoVenda,
+        quantidade: item.quantidade
+      })) : []
+    };
+
+    document.getElementById("nomeCesta").value = cestaAtual.nome;
+    document.getElementById("codigoCesta").value = cestaAtual.codigo;
+    renderizarCestaAtual();
+    abrirBusca();
+  };
+
+  window.baixarCestaSalva = function(codigo){
+    const cesta = lerLocalCestas()[codigo];
+    if(!cesta) return;
+
+    baixarArquivo(
+      nomeArquivoSeguro(codigo || cesta.nome) + ".json",
+      JSON.stringify(cesta, null, 2),
+      "application/json"
+    );
+  };
+
+  window.baixarTodasCestas = function(){
+    const lista = listaCestasLocais();
+    if(lista.length === 0){
+      alert("Não há cestas salvas para baixar.");
+      return;
+    }
+
+    baixarArquivo(
+      "cestas_salvas.json",
+      JSON.stringify(lista, null, 2),
+      "application/json"
+    );
+  };
+
+  window.apagarCesta = async function(codigo){
+    if(!confirm("Deseja apagar esta cesta salva?")) return;
+
+    const obj = lerLocalCestas();
+    delete obj[codigo];
+    salvarLocalCestas(obj);
+
+    try{
+      if(firebaseDb) await apagarRemotoCesta(codigo);
+    }catch(e){
+      console.error(e);
+    }
+
+    renderizarCestasSalvas();
+  };
+
+  window.apagarTodasCestas = async function(){
+    if(!confirm("Deseja apagar todas as cestas salvas?")) return;
+
+    const lista = listaCestasLocais();
+    salvarLocalCestas({});
+
+    if(firebaseDb){
+      for(const cesta of lista){
+        try{
+          await apagarRemotoCesta(cesta.codigo);
+        }catch(e){
+          console.error(e);
+        }
+      }
+    }
+
+    renderizarCestasSalvas();
+  };
+
+  function escapeHtml(texto){
+    return String(texto)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  window.alternarScanner = async function(){
+    if(scannerAtivo) await pararScanner();
+    else await iniciarScanner();
+  };
+
+  async function iniciarScanner(){
+    const reader = document.getElementById("reader");
+    reader.innerHTML = "";
+    scanner = new Html5Qrcode("reader");
+
+    try{
+      await scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 220, height: 140 }, aspectRatio: 1.7777778 },
+        async (codigo) => {
+          document.getElementById("busca").value = codigo;
+          buscar();
+          await pararScanner();
+        }
+      );
+      scannerAtivo = true;
+    }catch(erro){
+      console.error("Erro ao iniciar câmera:", erro);
+      reader.innerHTML = `<div class="scanner-placeholder">Não foi possível iniciar a câmera.</div>`;
+      scannerAtivo = false;
+    }
+  }
+
+  async function pararScanner(){
+    if(scanner){
+      try{
+        await scanner.stop();
+        await scanner.clear();
+      }catch(e){
+        console.warn(e);
+      }
+    }
+    scanner = null;
+    scannerAtivo = false;
+    document.getElementById("reader").innerHTML = `<div class="scanner-placeholder">Toque na câmera para iniciar o leitor no celular.</div>`;
+  }
+
+  function atualizarStatusSync(ativo){
+    const badge = document.getElementById("statusSyncBadge");
+    const texto = document.getElementById("statusSyncTexto");
+
+    if(ativo){
+      badge.textContent = "online";
+      badge.className = "status-on";
+      texto.textContent = "As cestas estão sincronizando em tempo real pela nuvem.";
+    }else{
+      badge.textContent = "offline";
+      badge.className = "status-off";
+      texto.textContent = "Verifique o Realtime Database e as regras do Firebase.";
+    }
+  }
+
+  function firebaseConfigValido(cfg){
+    return cfg && cfg.apiKey && cfg.authDomain && cfg.databaseURL && cfg.projectId && cfg.appId;
+  }
+
+  async function iniciarFirebaseSePossivel(){
+    if(!FIREBASE_ENABLED || !firebaseConfigValido(FIREBASE_CONFIG)){
+      atualizarStatusSync(false);
+      return;
+    }
+
+    try{
+      firebaseApp = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+      firebaseDb = getDatabase(firebaseApp);
+      atualizarStatusSync(true);
+      iniciarEscutaRemota();
+    }catch(erro){
+      console.error("Erro ao iniciar Firebase:", erro);
+      firebaseDb = null;
+      firebaseApp = null;
+      atualizarStatusSync(false);
+    }
+  }
+
+  function iniciarEscutaRemota(){
+    if(!firebaseDb) return;
+
+    if(firebaseListenerRef && firebaseListenerFn){
+      off(firebaseListenerRef, "value", firebaseListenerFn);
+    }
+
+    firebaseListenerRef = ref(firebaseDb, "cestas");
+    firebaseListenerFn = (snapshot) => {
+      const dados = snapshot.val() || {};
+      salvarLocalCestas(dados);
+      renderizarCestasSalvas();
+    };
+
+    onValue(firebaseListenerRef, firebaseListenerFn);
+  }
+
+  document.getElementById("busca").addEventListener("input", buscar);
+  document.getElementById("nomeCesta").addEventListener("input", renderizarCestaAtual);
+  document.getElementById("codigoCesta").addEventListener("input", renderizarCestaAtual);
+
+  await carregarArquivos();
+  renderizarCestaAtual();
+  renderizarCestasSalvas();
+  await iniciarFirebaseSePossivel();
+</script>
+</body>
+</html>
